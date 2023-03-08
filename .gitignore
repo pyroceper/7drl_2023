@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# HTML
+*.js
+*.html
+*.wasm
+
+# COMPILE SCRIPTS
+*.bat
