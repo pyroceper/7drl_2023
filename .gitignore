@@ -35,6 +35,7 @@
 *.js
 *.html
 *.wasm
+*.data
 
 # COMPILE SCRIPTS
 *.bat

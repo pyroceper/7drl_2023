@@ -26,11 +26,18 @@ class Game
         int total_floor {};
 
         Texture2D necromancer_tex {};
+        Texture2D pyromancer_tex {};
+        Texture2D floor_tex_1 {};
+        Texture2D floor_tex_2 {};
+        Texture2D wall_tex {};
+        
+        int temp_x, temp_y, temp_end_x, temp_end_y;
 
         void clearMap();
         void generateMap();
         bool isVaild(int row, int col);
-        void placeFloor(int row, int col);
+        void placeFloor(int row, int col, int val);
+        void placeWalls(int row, int col, int val);
         void printMap();
         void renderMap();
         void loadAssets();
