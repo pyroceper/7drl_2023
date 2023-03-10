@@ -4,6 +4,7 @@
 struct Entity
 {
     int x, y;
+    bool is_movement_done;
 };
 
 

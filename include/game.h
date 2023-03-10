@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "constants.h"
 #include "entity.h"
+#include "camera.h"
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
@@ -25,6 +26,9 @@ class Game
         int state {};
         int map[MAP_WIDTH][MAP_HEIGHT];
         int total_floor {};
+
+        int offset_x {};
+        int offset_y {};
 
         Texture2D necromancer_tex {};
         Texture2D pyromancer_tex {};
@@ -46,6 +50,7 @@ class Game
         void loadAssets();
         void menu();
         void clean();
+        void camera();
         bool isValidMovement(int row, int col);
 
 };
