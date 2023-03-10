@@ -141,6 +141,8 @@ void Game::generateMap()
             placeWalls(i,j,2);
         }
     }
+
+    placeEnemies();
 }
 
 void Game::renderMap()
@@ -173,10 +175,31 @@ void Game::printMap()
     }
 }
 
+void Game::placeEnemy(int i)
+{
+    int x, y;
+    do 
+    {
+        x = 1 + rand() % (MAP_WIDTH - 2);
+        y = 1 + rand() % (MAP_HEIGHT - 2);
+    }while(map[x][y] == -1 || map[x][y] == 2);
+    enemy_list[i].x = x;
+    enemy_list[i].y = y;
+}
+
+void Game::placeEnemies()
+{
+    for(int i=0;i<10;i++)
+    {
+        placeEnemy(i);
+    }
+}
+
 void Game::loadAssets()
 {
     necromancer_tex = LoadTexture("assets/gfx/necro.png");
     pyromancer_tex = LoadTexture("assets/gfx/pyro.png");
+    witch_tex = LoadTexture("assets/gfx/witch.png");
     floor_tex_1 = LoadTexture("assets/gfx/floor/floor_1.png");
     floor_tex_2 = LoadTexture("assets/gfx/floor/floor_2.png");
     wall_tex = LoadTexture("assets/gfx/walls/wall.png");
@@ -186,6 +209,7 @@ void Game::clean()
 {
     UnloadTexture(necromancer_tex);
     UnloadTexture(pyromancer_tex);
+    UnloadTexture(witch_tex);
     UnloadTexture(floor_tex_1);
     UnloadTexture(floor_tex_2);
     UnloadTexture(wall_tex);
@@ -269,6 +293,12 @@ void Game::menu()
             DrawTextureEx(necromancer_tex, {(static_cast<float>(player.x) * TILE_SIZE) - offset_x, (static_cast<float>(player.y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
         
         DrawTextureEx(pyromancer_tex, {(static_cast<float>(temp_end_x) * TILE_SIZE) - offset_x, (static_cast<float>(temp_end_y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+
+        for(int i=0;i<10;i++)
+        {
+            DrawTextureEx(witch_tex, {(static_cast<float>(enemy_list[i].x) * TILE_SIZE) - offset_x, (static_cast<float>(enemy_list[i].y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+        }
+
 
     EndDrawing();
 

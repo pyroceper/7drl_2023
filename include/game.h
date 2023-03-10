@@ -32,11 +32,13 @@ class Game
 
         Texture2D necromancer_tex {};
         Texture2D pyromancer_tex {};
+        Texture2D witch_tex {};
         Texture2D floor_tex_1 {};
         Texture2D floor_tex_2 {};
         Texture2D wall_tex {};
 
         Entity player;
+        Entity enemy_list[10];
         
         int temp_end_x, temp_end_y;
 
@@ -47,11 +49,14 @@ class Game
         void placeWalls(int row, int col, int val);
         void printMap();
         void renderMap();
+        
         void loadAssets();
         void menu();
         void clean();
         void camera();
         bool isValidMovement(int row, int col);
+        void placeEnemies();
+        void placeEnemy(int i);
 
 };
 
