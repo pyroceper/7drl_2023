@@ -6,6 +6,7 @@
 #include <ctime>
 #include "raylib.h"
 #include "constants.h"
+#include "entity.h"
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
@@ -30,8 +31,10 @@ class Game
         Texture2D floor_tex_1 {};
         Texture2D floor_tex_2 {};
         Texture2D wall_tex {};
+
+        Entity player;
         
-        int temp_x, temp_y, temp_end_x, temp_end_y;
+        int temp_end_x, temp_end_y;
 
         void clearMap();
         void generateMap();
@@ -43,6 +46,7 @@ class Game
         void loadAssets();
         void menu();
         void clean();
+        bool isValidMovement(int row, int col);
 
 };
 

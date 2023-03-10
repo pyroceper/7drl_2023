@@ -130,8 +130,8 @@ void Game::generateMap()
 
         placeFloor(x, y, floor_val);
     }
-    temp_x = x;
-    temp_y = y;
+    player.x = x;
+    player.y = y;
 
     for(int i=0;i<MAP_WIDTH;i++)
     {
@@ -149,13 +149,13 @@ void Game::renderMap()
         for(int j=0;j<MAP_HEIGHT;j++)
         {
             if(map[i][j] == 0)
-                DrawTexture(floor_tex_1, i * 16, j * 16, WHITE);
+                DrawTextureEx(floor_tex_1, {static_cast<float>(i) * TILE_SIZE, static_cast<float>(j) * TILE_SIZE}, 0.f, 2.f, WHITE);
             else if(map[i][j] == 1)
-                DrawTexture(floor_tex_2, i * 16, j * 16, WHITE);
+                DrawTextureEx(floor_tex_2, {static_cast<float>(i) * TILE_SIZE, static_cast<float>(j) * TILE_SIZE}, 0.f, 2.f, WHITE);
             else if(map[i][j] == 2)
-                DrawTexture(wall_tex, i * 16, j * 16, WHITE);
+                DrawTextureEx(wall_tex, {static_cast<float>(i) * TILE_SIZE, static_cast<float>(j) * TILE_SIZE}, 0.f, 2.f, WHITE);
             else
-                DrawRectangle(i * 16, j * 16, 16, 16, BLACK);
+                DrawRectangle(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLACK);
         }
     }
 }
@@ -207,8 +207,36 @@ void webRun(Game &game)
 }
 #endif
 
+bool Game::isValidMovement(int row, int col)
+{
+    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] != 2);
+}
+
 void Game::menu()
 {
+    //input
+    if(IsKeyPressed(KEY_W))
+    {
+        if(isValidMovement(player.x, player.y-1))
+            player.y--;
+    }
+    if(IsKeyPressed(KEY_S))
+    {
+        if(isValidMovement(player.x, player.y+1))
+            player.y++;
+    }
+    if(IsKeyPressed(KEY_A))
+    {
+        if(isValidMovement(player.x-1, player.y))
+            player.x--;
+    }
+    if(IsKeyPressed(KEY_D))
+    {
+        if(isValidMovement(player.x+1, player.y))
+            player.x++;
+    }
+
+
     //render
     BeginDrawing();
 
@@ -218,8 +246,10 @@ void Game::menu()
 
         renderMap();
 
-        DrawTexture(necromancer_tex, temp_x * 16, temp_y * 16, WHITE);
-        DrawTexture(pyromancer_tex, temp_end_x * 16, temp_end_y * 16, WHITE);
+        DrawTextureEx(necromancer_tex, {static_cast<float>(player.x) * TILE_SIZE, static_cast<float>(player.y) * TILE_SIZE}, 0.f, 2.f, WHITE);
+
+        DrawTextureEx(pyromancer_tex, {static_cast<float>(temp_end_x) * TILE_SIZE, static_cast<float>(temp_end_y) * TILE_SIZE}, 0.f, 2.f, WHITE);
+
 
     EndDrawing();
 }
