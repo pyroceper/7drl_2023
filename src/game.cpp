@@ -11,6 +11,7 @@ Game::Game()
     clearMap();
     generateMap();
     printMap();
+    pathfinder.printPath();
     loadAssets();
     std::cout<<"[Init] Done!\n";
 }
@@ -32,6 +33,7 @@ bool Game::isVaild(int row, int col)
     return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] == -1);
 }
 
+
 void Game::placeFloor(int row, int col, int val)
 {
     if(isVaild(row, col))
@@ -50,18 +52,22 @@ void Game::placeWalls(int row, int col, int val)
             if(map[row-1][col] == -1)
             {
                 map[row-1][col] = val;
+                pathfinder.addObstacle(col, row-1);
             }
             if(map[row+1][col] == -1)
             {
                 map[row+1][col] = val;
+                pathfinder.addObstacle(col, row+1);
             }
             if(map[row][col-1] == -1)
             {
                 map[row][col-1] = val;
+                pathfinder.addObstacle(col-1, row);
             }
             if(map[row][col+1] == -1)
             {
                 map[row][col+1] = val;
+                pathfinder.addObstacle(col+1, row);
             }
         }
     }
@@ -72,7 +78,7 @@ void Game::generateMap()
     unsigned int seed = time(nullptr);
     srand((unsigned)seed);
     std::cout<<"[Seed] "<<seed<<"\n";
-    int x, y, dx, dy, tunnel, floor_type, floor_val;
+    int x, y, dx, dy, tunnel, floor_type, wall_type;
     dx = dy = tunnel = 0;
 
     x = 1 + rand() % (MAP_WIDTH - 2);
@@ -124,11 +130,11 @@ void Game::generateMap()
         floor_type = rand() % 10;
 
         if(floor_type == 0)
-            floor_val = 1;
+            floor_type = 1;
         else 
-            floor_val = 0;
+            floor_type = 0;
 
-        placeFloor(x, y, floor_val);
+        placeFloor(x, y, floor_type);
     }
     player.x = x;
     player.y = y;
@@ -138,7 +144,14 @@ void Game::generateMap()
     {
         for(int j=0;j<MAP_HEIGHT;j++)
         {
-            placeWalls(i,j,2);
+            wall_type = rand() % 15;
+            if(wall_type < 5)
+                wall_type = 3;
+            if(wall_type > 5 && wall_type < 9)
+                wall_type = 4;
+            else 
+                wall_type = 2;
+            placeWalls(i, j, wall_type);
         }
     }
 
@@ -157,6 +170,10 @@ void Game::renderMap()
                 DrawTextureEx(floor_tex_2, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
             else if(map[i][j] == 2)
                 DrawTextureEx(wall_tex, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+            else if(map[i][j] == 3)
+                DrawTextureEx(wall_tex_2, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+            else if(map[i][j] == 4)
+                DrawTextureEx(wall_tex_3, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
             else
                 DrawRectangle((i * TILE_SIZE) - offset_x, (j * TILE_SIZE) - offset_y, TILE_SIZE, TILE_SIZE, BLACK);
         }
@@ -182,7 +199,7 @@ void Game::placeEnemy(int i)
     {
         x = 1 + rand() % (MAP_WIDTH - 2);
         y = 1 + rand() % (MAP_HEIGHT - 2);
-    }while(map[x][y] == -1 || map[x][y] == 2);
+    }while(map[x][y] == -1 || map[x][y] == 2 || map[x][y] == 3 || map[x][y] == 4);
     enemy_list[i].x = x;
     enemy_list[i].y = y;
 }
@@ -203,6 +220,8 @@ void Game::loadAssets()
     floor_tex_1 = LoadTexture("assets/gfx/floor/floor_1.png");
     floor_tex_2 = LoadTexture("assets/gfx/floor/floor_2.png");
     wall_tex = LoadTexture("assets/gfx/walls/wall.png");
+    wall_tex_2 = LoadTexture("assets/gfx/walls/wall_2.png");
+    wall_tex_3 = LoadTexture("assets/gfx/walls/wall_3.png");
 }
 
 void Game::clean()
@@ -213,6 +232,8 @@ void Game::clean()
     UnloadTexture(floor_tex_1);
     UnloadTexture(floor_tex_2);
     UnloadTexture(wall_tex);
+    UnloadTexture(wall_tex_2);
+    UnloadTexture(wall_tex_3);
     CloseWindow();
 }
 
@@ -234,7 +255,7 @@ void webRun(Game &game)
 
 bool Game::isValidMovement(int row, int col)
 {
-    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] != 2);
+    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] != 2 && map[row][col] != 3 && map[row][col] != 4);
 }
 
 void Game::camera()
@@ -244,17 +265,15 @@ void Game::camera()
     offset_y = static_cast<int>(Cam::offset.y);
 }
 
-void Game::menu()
+bool Game::inputHandler()
 {
-    camera();
-
-    //input
     if(IsKeyPressed(KEY_W))
     {
         if(isValidMovement(player.x, player.y-1))
         {
             player.y--;
             player.is_movement_done = false;
+            return true;
         }
     }
     if(IsKeyPressed(KEY_S))
@@ -263,6 +282,7 @@ void Game::menu()
         {
             player.y++;
             player.is_movement_done = false;
+            return true;
         }
     }
     if(IsKeyPressed(KEY_A))
@@ -271,6 +291,7 @@ void Game::menu()
         {
             player.x--;
             player.is_movement_done = false;
+            return true;
         }
     }
     if(IsKeyPressed(KEY_D))
@@ -279,13 +300,98 @@ void Game::menu()
         {
             player.x++;
             player.is_movement_done = false;
+            return true;
         }
     }
+    return false;
+}
+
+void Game::moveUnit(int &i, int &j)
+{
+    // player in the next cell
+    if((pathfinder.isValid(i + 1, j) &&  pathfinder.path[i + 1][j] == 1) || (pathfinder.isValid(i - 1, j) && pathfinder.path[i - 1][j] == 1)
+        || (pathfinder.isValid(i, j + 1) &&  pathfinder.path[i][j + 1] == 1) || (pathfinder.isValid(i, j - 1) &&  pathfinder.path[i][j - 1] == 1))
+    {
+        return;
+    }
+
+    // south
+    if(pathfinder.isValid(i + 1, j) &&  pathfinder.path[i + 1][j] == pathfinder.path[i][j] - 1)
+    {
+        i++;
+        return;
+    }
+    // north
+    if(pathfinder.isValid(i - 1, j) &&  pathfinder.path[i - 1][j] == pathfinder.path[i][j] - 1)
+    {
+        i--;
+        return;
+    }
+    // east
+    if(pathfinder.isValid(i, j + 1) &&  pathfinder.path[i][j + 1] == pathfinder.path[i][j] - 1)
+    {
+        j++;
+        return;
+    }
+    // west
+    if(pathfinder.isValid(i, j - 1) &&  pathfinder.path[i][j - 1] == pathfinder.path[i][j] - 1)
+    {
+        j--;
+        return;
+    }
+
+}
+
+void Game::enemiesHandler()
+{
+    for(int i=0;i<10;i++)
+    {
+        if(!enemy_list[i].is_movement_done)
+            enemyHandler(i);
+    }
+}
+
+void Game::enemyHandler(int i)
+{
+    int j = enemy_list[i].y;
+    int k = enemy_list[i].x;
+
+    moveUnit(j, k);
+
+    enemy_list[i].y = j;
+    enemy_list[i].x = k;
+
+    enemy_list[i].is_movement_done = true;
+}
+
+void Game::menu()
+{
+    camera();
+
+    //input
+    input_state_changed = inputHandler();
+
+    if(input_state_changed)
+    {
+        std::cout<<"row = "<<player.y<<std::endl;
+        std::cout<<"col = "<<player.x<<std::endl;
+        pathfinder.search(player.y, player.x);
+        pathfinder.printPath();
+        for(int i=0;i<10;i++)
+        {
+            enemy_list[i].is_movement_done = false;
+        }
+        input_state_changed = false;
+    }
+    
+    
+    enemiesHandler();
+
 
     //render
     BeginDrawing();
 
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
 
         renderMap();
 
