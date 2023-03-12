@@ -9,6 +9,7 @@
 #include "entity.h"
 #include "camera.h"
 #include "pathfinder.h"
+#include "map.h"
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
@@ -25,7 +26,8 @@ class Game
 
     private:
         int state {};
-        int map[MAP_WIDTH][MAP_HEIGHT]; // used for rendering
+        //int map[MAP_WIDTH][MAP_HEIGHT]; // used for rendering
+        Map map[MAP_WIDTH][MAP_HEIGHT];
         int total_floor {};
 
         int offset_x {};

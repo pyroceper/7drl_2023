@@ -23,14 +23,14 @@ void Game::clearMap()
     {
         for(int j=0;j<MAP_HEIGHT;j++)
         {
-            map[i][j] = -1;
+            map[i][j].render = -1;
         }
     }
 }
 
 bool Game::isVaild(int row, int col)
 {
-    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] == -1);
+    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col].render  == -1);
 }
 
 
@@ -38,7 +38,7 @@ void Game::placeFloor(int row, int col, int val)
 {
     if(isVaild(row, col))
     {
-        map[row][col] = val;
+        map[row][col].render = val;
         total_floor++;
     }
 }
@@ -47,26 +47,26 @@ void Game::placeWalls(int row, int col, int val)
 {
     if(row < MAP_WIDTH && col < MAP_HEIGHT)
     {
-        if(map[row][col] == 0 || map[row][col] == 1)
+        if(map[row][col].render == 0 || map[row][col].render == 1)
         {
-            if(map[row-1][col] == -1)
+            if(map[row-1][col].render == -1)
             {
-                map[row-1][col] = val;
+                map[row-1][col].render = val;
                 pathfinder.addObstacle(col, row-1);
             }
-            if(map[row+1][col] == -1)
+            if(map[row+1][col].render == -1)
             {
-                map[row+1][col] = val;
+                map[row+1][col].render = val;
                 pathfinder.addObstacle(col, row+1);
             }
-            if(map[row][col-1] == -1)
+            if(map[row][col-1].render == -1)
             {
-                map[row][col-1] = val;
+                map[row][col-1].render = val;
                 pathfinder.addObstacle(col-1, row);
             }
-            if(map[row][col+1] == -1)
+            if(map[row][col+1].render == -1)
             {
-                map[row][col+1] = val;
+                map[row][col+1].render = val;
                 pathfinder.addObstacle(col+1, row);
             }
         }
@@ -84,7 +84,7 @@ void Game::generateMap()
     x = 1 + rand() % (MAP_WIDTH - 2);
     y = 1 + rand() % (MAP_HEIGHT - 2);
 
-    map[x][y] = 0;
+    map[x][y].render = 0;
 
     temp_end_x = x;
     temp_end_y = y;
@@ -164,15 +164,15 @@ void Game::renderMap()
     {
         for(int j=0;j<MAP_HEIGHT;j++)
         {
-            if(map[i][j] == 0)
+            if(map[i][j].render == 0)
                 DrawTextureEx(floor_tex_1, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
-            else if(map[i][j] == 1)
+            else if(map[i][j].render  == 1)
                 DrawTextureEx(floor_tex_2, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
-            else if(map[i][j] == 2)
+            else if(map[i][j].render  == 2)
                 DrawTextureEx(wall_tex, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
-            else if(map[i][j] == 3)
+            else if(map[i][j].render  == 3)
                 DrawTextureEx(wall_tex_2, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
-            else if(map[i][j] == 4)
+            else if(map[i][j].render  == 4)
                 DrawTextureEx(wall_tex_3, {(static_cast<float>(i) * TILE_SIZE) - offset_x, (static_cast<float>(j) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
             else
                 DrawRectangle((i * TILE_SIZE) - offset_x, (j * TILE_SIZE) - offset_y, TILE_SIZE, TILE_SIZE, BLACK);
@@ -186,7 +186,7 @@ void Game::printMap()
     {
         for(int j=0;j<MAP_HEIGHT;j++)
         {
-            std::cout<<map[i][j]<<" ";
+            std::cout<<map[i][j].render<<" ";
         }
         std::cout<<"\n";
     }
@@ -199,9 +199,10 @@ void Game::placeEnemy(int i)
     {
         x = 1 + rand() % (MAP_WIDTH - 2);
         y = 1 + rand() % (MAP_HEIGHT - 2);
-    }while(map[x][y] == -1 || map[x][y] == 2 || map[x][y] == 3 || map[x][y] == 4);
+    }while(map[x][y].render  == -1 || map[x][y].render  == 2 || map[x][y].render  == 3 || map[x][y].render  == 4 || pathfinder.checkEntity(y, x));
     enemy_list[i].x = x;
     enemy_list[i].y = y;
+    pathfinder.addEntity(y, x);
 }
 
 void Game::placeEnemies()
@@ -255,7 +256,7 @@ void webRun(Game &game)
 
 bool Game::isValidMovement(int row, int col)
 {
-    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col] != 2 && map[row][col] != 3 && map[row][col] != 4);
+    return (row < MAP_WIDTH && col < MAP_HEIGHT && map[row][col].render  != 2 && map[row][col].render  != 3 && map[row][col].render  != 4 && !pathfinder.checkEntity(col, row));
 }
 
 void Game::camera()
@@ -316,27 +317,35 @@ void Game::moveUnit(int &i, int &j)
     }
 
     // south
-    if(pathfinder.isValid(i + 1, j) &&  pathfinder.path[i + 1][j] == pathfinder.path[i][j] - 1)
+    if(pathfinder.isValid(i + 1, j) &&  pathfinder.path[i + 1][j] == pathfinder.path[i][j] - 1 && !pathfinder.checkEntity(i + 1, j))
     {
+        pathfinder.removeEntity(i, j);
         i++;
+        pathfinder.addEntity(i, j);
         return;
     }
     // north
-    if(pathfinder.isValid(i - 1, j) &&  pathfinder.path[i - 1][j] == pathfinder.path[i][j] - 1)
+    if(pathfinder.isValid(i - 1, j) &&  pathfinder.path[i - 1][j] == pathfinder.path[i][j] - 1 && !pathfinder.checkEntity(i - 1, j))
     {
+        pathfinder.removeEntity(i, j);
         i--;
+        pathfinder.addEntity(i, j);
         return;
     }
     // east
-    if(pathfinder.isValid(i, j + 1) &&  pathfinder.path[i][j + 1] == pathfinder.path[i][j] - 1)
+    if(pathfinder.isValid(i, j + 1) &&  pathfinder.path[i][j + 1] == pathfinder.path[i][j] - 1 && !pathfinder.checkEntity(i, j + 1))
     {
+        pathfinder.removeEntity(i, j);
         j++;
+        pathfinder.addEntity(i, j);
         return;
     }
     // west
-    if(pathfinder.isValid(i, j - 1) &&  pathfinder.path[i][j - 1] == pathfinder.path[i][j] - 1)
+    if(pathfinder.isValid(i, j - 1) &&  pathfinder.path[i][j - 1] == pathfinder.path[i][j] - 1 && !pathfinder.checkEntity(i, j - 1))
     {
+        pathfinder.removeEntity(i, j);
         j--;
+        pathfinder.addEntity(i, j);
         return;
     }
 
