@@ -215,9 +215,9 @@ void Game::placeEnemies()
 
 void Game::loadAssets()
 {
-    necromancer_tex = LoadTexture("assets/gfx/necro.png");
+    necromancer_tex = LoadTexture("assets/gfx/char/AdeptNecromancerIdle.png");
     pyromancer_tex = LoadTexture("assets/gfx/pyro.png");
-    witch_tex = LoadTexture("assets/gfx/witch.png");
+    witch_tex = LoadTexture("assets/gfx/char/VileWitchIdle.png");
     floor_tex_1 = LoadTexture("assets/gfx/floor/floor_1.png");
     floor_tex_2 = LoadTexture("assets/gfx/floor/floor_2.png");
     wall_tex = LoadTexture("assets/gfx/walls/wall.png");
@@ -373,6 +373,45 @@ void Game::enemyHandler(int i)
     enemy_list[i].is_movement_done = true;
 }
 
+void Game::playerAnimation()
+{
+    player.animation_tick += 1.f * GetFrameTime();
+    if(player.animation_tick > 0.2f)
+    {
+        player.animation_tick = 0.f;
+        player.animation_index = (player.animation_index + 16) % 48;
+    }
+}
+
+void Game::enemyAnimHandler(int i)
+{
+    enemy_list[i].animation_tick += 1.f * GetFrameTime();
+    if(enemy_list[i].animation_tick > 0.2f)
+    {
+        enemy_list[i].animation_tick = 0.f;
+        enemy_list[i].animation_index = (enemy_list[i].animation_index + 16) % 48;
+    }
+}
+
+void Game::enemiesAnimHandler()
+{
+    for(int i=0;i<10;i++)
+    {
+        enemyAnimHandler(i);
+    }
+}
+
+void Game::animationHandler()
+{
+    playerAnimation();
+    enemiesAnimHandler();
+}
+
+void Game::renderUI()
+{
+    DrawRectangle(720, 20, 300, 400, WHITE);
+}
+
 void Game::menu()
 {
     camera();
@@ -395,6 +434,7 @@ void Game::menu()
     
     
     enemiesHandler();
+    animationHandler();
 
 
     //render
@@ -405,14 +445,16 @@ void Game::menu()
         renderMap();
 
         if(player.is_movement_done)
-            DrawTextureEx(necromancer_tex, {(static_cast<float>(player.x) * TILE_SIZE) - offset_x, (static_cast<float>(player.y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+            DrawTexturePro(necromancer_tex, (Rectangle){static_cast<float>(player.animation_index), 0, 16, 16}, (Rectangle){(static_cast<float>(player.x) * TILE_SIZE) - offset_x, (static_cast<float>(player.y) * TILE_SIZE) - offset_y, 16 * 2, 16 * 2}, {0, 0}, 0.f, WHITE);
         
         DrawTextureEx(pyromancer_tex, {(static_cast<float>(temp_end_x) * TILE_SIZE) - offset_x, (static_cast<float>(temp_end_y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
 
         for(int i=0;i<10;i++)
         {
-            DrawTextureEx(witch_tex, {(static_cast<float>(enemy_list[i].x) * TILE_SIZE) - offset_x, (static_cast<float>(enemy_list[i].y) * TILE_SIZE) - offset_y}, 0.f, 2.f, WHITE);
+            DrawTexturePro(witch_tex, (Rectangle){static_cast<float>(enemy_list[i].animation_index), 0, 16, 16}, (Rectangle){(static_cast<float>(enemy_list[i].x) * TILE_SIZE) - offset_x , (static_cast<float>(enemy_list[i].y) * TILE_SIZE) - offset_y, 16 * 2, 16 * 2}, {0, 0}, 0.f, WHITE);
         }
+
+        //renderUI();
 
 
     EndDrawing();

@@ -3,8 +3,8 @@
 
 #include <string>
 
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const int WIDTH = 1024;
+const int HEIGHT = 768;
 const int FPS = 60;
 const std::string TITLE = "7drl_2023";
 const int MAP_WIDTH = 30;

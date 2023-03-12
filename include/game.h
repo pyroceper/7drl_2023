@@ -71,6 +71,13 @@ class Game
         void enemiesHandler();
         void enemyHandler(int i);
         void moveUnit(int &i, int &j);
+
+        void animationHandler();
+        void playerAnimation();
+        void enemiesAnimHandler();
+        void enemyAnimHandler(int i);
+
+        void renderUI();
 };
 
 #if defined(PLATFORM_WEB)
