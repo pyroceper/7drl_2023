@@ -56,14 +56,19 @@ bool Pathfinder::checkObstacle(int row, int col)
     return obstacles[MAP_WIDTH * row + col];
 }
 
-void Pathfinder::addEntity(int row, int col)
+void Pathfinder::addEntity(int row, int col, int val)
 {
-    entity_present[MAP_WIDTH * row + col] = true;
+    entity_present[MAP_WIDTH * row + col] = val;
 }
 
 void Pathfinder::removeEntity(int row, int col)
 {
-    entity_present[MAP_WIDTH * row + col] = false;
+    entity_present[MAP_WIDTH * row + col] = 0;
+}
+
+int Pathfinder::getEntity(int row, int col)
+{
+    return entity_present[MAP_WIDTH * row + col]; 
 }
 
 bool Pathfinder::checkEntity(int row, int col)

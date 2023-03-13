@@ -4,6 +4,7 @@
 struct Map
 {
     int render;
+    int fov;
 };
 
 

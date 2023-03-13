@@ -8,6 +8,8 @@ struct Entity
     int health;
     float animation_tick;
     int animation_index;
+    int is_left = 1;
+    bool is_dead = false;
 };
 
 
